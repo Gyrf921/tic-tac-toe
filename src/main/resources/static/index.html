@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns="http://www.w3.org/1999/html">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@stomp/stompjs@7.0.0/bundles/stomp.umd.min.js"></script>
+  <script src="/app.js"></script>
+  <link href="/game-style.css" rel="stylesheet">
+  <title>Крестики-нолики</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.5.0/sockjs.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
+</head>
+<body>
+<h3>Крестики нолики!</h3>
+  <div class="row">
+      <form class="form-inline">
+        <div class="col-md-6">
+          <div class="form-check">
+            <input class="form-check-input" type="radio" name="typeGameRadios" id="typeGameRadiosPvE" value="option1" checked>
+            <label class="form-check-label" for="typeGameRadiosPvE">
+              Игра против математики
+            </label>
+          </div>
+          <div class="form-check">
+            <input class="form-check-input" type="radio" name="typeGameRadios" id="typeGameRadiosPvP" value="option2">
+            <label class="form-check-label" for="typeGameRadiosPvP">
+              Игра против игрока
+            </label>
+          </div>
+        </div>
+          <button id="play" class="btn btn-default" type="submit">Начать игру</button>
+      </form>
+  </div>
+
+  <div>
+    <div id="gameboard"></div>
+    <div id="message"></div>
+  </div>
+
+</body>
+</html>
