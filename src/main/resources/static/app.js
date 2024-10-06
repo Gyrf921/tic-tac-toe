@@ -5,16 +5,30 @@ document.addEventListener('DOMContentLoaded', (event) => {
     let board = Array(9).fill(null); // Начальное состояние игрового поля
     let currentPlayer = 'X'; // Первый игрок
     let message = document.getElementById('message'); // Элемент для вывода сообщений
+    const isPvP = false;
+    let radios = document.querySelectorAll('input[type="radio"]');
+    let button = document.querySelector('#start');
+    let buttonReset = document.querySelector('#reset');
+
+    let urlForPublish = '/app/play/PvP';
+    let urlForSubscribe = '/topic/games/PvP';
 
     stompClient.onConnect = (frame) => {
         console.log('Connected: ' + frame);
-        // Подписка на общий топик для обновлений игры
-        stompClient.subscribe('/topic/games', (gameState) => {
+        stompClient.subscribe(urlForSubscribe, (gameState) => {
+
             const state = JSON.parse(gameState.body);
+            console.log('stompClient.state: ' + state);
+
             board = state.board;
             currentPlayer = state.currentPlayer;
             render(); // обновляем отображение
             checkWinner(state); // проверяем есть ли победитель
+        });
+
+        console.log('Connected CHAT: ' + frame);
+        stompClient.subscribe('/topic/greetings', (greeting) => {
+            showGreeting(JSON.parse(greeting.body).content);
         });
     };
 
@@ -26,7 +40,40 @@ document.addEventListener('DOMContentLoaded', (event) => {
         console.error('Broker reported error: ' + frame.headers['message']);
         console.error('Additional details: ' + frame.body);
     };
-    stompClient.activate();
+
+    button.addEventListener('click', function() {
+        for (let radio of radios) {
+            if (radio.checked) {
+                console.log();
+                if (radio.value === 'PvP') {
+                    urlForPublish = '/app/play/PvP';
+                    urlForSubscribe = '/topic/games/PvP';
+                }
+                else {
+                    urlForPublish = '/app/play/PvE';
+                    urlForSubscribe = '/topic/games/PvE';
+                }
+            }
+        }
+        start();
+    });
+
+    buttonReset.addEventListener('click', function (){
+
+        stompClient.publish({
+            destination: '/app/play/clear'
+        });
+        render();
+    })
+
+
+    function start() {
+        console.log('Try to start: ');
+
+        console.log('stompClient.activate: urlForPublish - ', urlForPublish, "; urlForSubscribe - ", urlForSubscribe);
+        stompClient.activate();
+        message.innerText = "Да начнутся голодные игры!)))";
+    }
 
     const handleClick = (index) => {
         if (board[index] || checkWinner(board)) {
@@ -40,7 +87,7 @@ document.addEventListener('DOMContentLoaded', (event) => {
         };
 
         stompClient.publish({
-            destination: '/app/play',
+            destination: urlForPublish,
             body: JSON.stringify(move),
         });
 
@@ -48,7 +95,6 @@ document.addEventListener('DOMContentLoaded', (event) => {
         render();
         checkWinner({'winner': null}); // Проверка на победителя после хода
     };
-
 
     const render = () => {
         const gameboard = document.getElementById('gameboard');
@@ -72,4 +118,22 @@ document.addEventListener('DOMContentLoaded', (event) => {
     };
 
     render(); // обновляем отображение
+
+    let buttonMessage = document.querySelector('#send_message');
+
+    buttonMessage.addEventListener('click', function() {
+        stompClient.publish({
+            destination: "/app/message",
+            body: JSON.stringify(
+                {
+                    'name': $("#name-chat").val(),
+                    'message': $("#message-chat").val()
+                }
+            )
+        });
+    })
+
+    function showGreeting(message) {
+        $("#greetings").append("<tr><td>" + message + "</td></tr>");
+    }
 });

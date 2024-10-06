@@ -3,40 +3,67 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@stomp/stompjs@7.0.0/bundles/stomp.umd.min.js"></script>
   <script src="/app.js"></script>
   <link href="/game-style.css" rel="stylesheet">
   <title>Крестики-нолики</title>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.5.0/sockjs.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
+  <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
 </head>
 <body>
-<h3>Крестики нолики!</h3>
+<div class="container mt-5">
+  <h3 class="text-center">Крестики нолики!</h3>
   <div class="row">
-      <form class="form-inline">
-        <div class="col-md-6">
-          <div class="form-check">
-            <input class="form-check-input" type="radio" name="typeGameRadios" id="typeGameRadiosPvE" value="option1" checked>
-            <label class="form-check-label" for="typeGameRadiosPvE">
-              Игра против математики
-            </label>
-          </div>
-          <div class="form-check">
-            <input class="form-check-input" type="radio" name="typeGameRadios" id="typeGameRadiosPvP" value="option2">
-            <label class="form-check-label" for="typeGameRadiosPvP">
-              Игра против игрока
-            </label>
-          </div>
+    <div class="col-md-3">
+      <form class="form-inline flex-column">
+        <div class="form-check mb-2">
+          <input class="form-check-input" type="radio" name="typeGameRadios" id="typeGameRadiosPvE" value="PvE" checked>
+          <label class="form-check-label" for="typeGameRadiosPvE">
+            Игра против математики
+          </label>
         </div>
-          <button id="play" class="btn btn-default" type="submit">Начать игру</button>
+        <div class="form-check mb-2">
+          <input class="form-check-input" type="radio" name="typeGameRadios" id="typeGameRadiosPvP" value="PvP">
+          <label class="form-check-label" for="typeGameRadiosPvP">
+            Игра против игрока
+          </label>
+        </div>
+        <button id="start" class="btn btn-primary mb-2" type="button">Начать игру</button>
+        <button id="reset" class="btn btn-secondary mb-2" type="submit">Сброс</button>
       </form>
+    </div>
+    <div class="col-md-6 d-flex justify-content-center flex-column align-items-center">
+      <div id="gameboard"></div>
+      <div id="message"></div>
+    </div>
+    <div class="col-md-3">
+      <div id="chat-name" class="input-group">
+        <input type="text" id="name-chat" class="form-control" placeholder="ИмяО КитиКяО?">
+      </div>
+      <div id="chat">
+        <table id="conversation" class="table table-striped">
+          <thead>
+          <tr>
+            <th>Мольбы врага</th>
+          </tr>
+          </thead>
+          <tbody id="greetings">
+          </tbody>
+        </table>
+      </div>
+      <div id="chat-input" class="input-group">
+        <input type="text" id="message-chat"  class="form-control" placeholder="БуКаВы?">
+        <div class="input-group-append">
+          <button  id="send_message"  class="btn btn-success" type="button">Отправить</button>
+        </div>
+      </div>
+    </div>
   </div>
-
-  <div>
-    <div id="gameboard"></div>
-    <div id="message"></div>
-  </div>
-
+</div>
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.5.0/sockjs.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@stomp/stompjs@7.0.0/bundles/stomp.umd.min.js"></script>
 </body>
 </html>

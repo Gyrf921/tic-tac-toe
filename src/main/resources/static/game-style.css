@@ -1,19 +1,21 @@
-h3 {
-    margin: 0 auto 20px;
-}
-
-p{
-    font-style: italic;
-}
-
 #gameboard {
     display: grid;
     grid-template-columns: repeat(3, 100px);
     grid-template-rows: repeat(3, 100px);
     gap: 5px;
+    margin: auto;
 }
-
-
+#chat {
+    max-width: 940px;
+    min-height: 340px;
+    padding: 2em 3em;
+    margin: 0 auto 20px;
+    background-color: #fff;
+    border: 1px solid #e5e5e5;
+    -webkit-border-radius: 5px;
+    -moz-border-radius: 5px;
+    border-radius: 5px;
+}
 .cell {
     display: flex;
     justify-content: center;
@@ -28,7 +30,31 @@ p{
 .cell:hover {
     background-color: #f0f0f0;
 }
+
+.cell:hover {
+    background-color: #f0f0f0;
+}
 #message {
     margin-top: 20px;
     font-size: 1.5em;
 }
+
+#chat {
+    border: 1px solid #ddd;
+    padding: 10px;
+    max-height: 600px;
+    overflow-y: scroll;
+}
+
+#chat-input {
+    margin-top: 10px;
+}
+
+
+
+
+
+
+
+
+
