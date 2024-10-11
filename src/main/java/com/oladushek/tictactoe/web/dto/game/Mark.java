@@ -1,7 +1,6 @@
-package com.oladushek.tictactoe.service.model;
+package com.oladushek.tictactoe.web.dto.game;
 
 import lombok.AllArgsConstructor;
-import lombok.Data;
 import lombok.Getter;
 
 @AllArgsConstructor
@@ -13,6 +12,4 @@ public enum Mark {
     Z("");
 
     private final String value;
-
-
 }

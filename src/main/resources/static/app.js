@@ -2,77 +2,87 @@ document.addEventListener('DOMContentLoaded', (event) => {
     const stompClient = new StompJs.Client({
         brokerURL: 'ws://localhost:8081/tic-tac-toe-websocket'
     });
+    let urlForPublish = '', urlForSubscribe = '';
     let board = Array(9).fill(null); // Начальное состояние игрового поля
     let currentPlayer = 'X'; // Первый игрок
-    let message = document.getElementById('message'); // Элемент для вывода сообщений
-    const isPvP = false;
     let radios = document.querySelectorAll('input[type="radio"]');
-    let button = document.querySelector('#start');
-    let buttonReset = document.querySelector('#reset');
-
-    let urlForPublish = '/app/play/PvP';
-    let urlForSubscribe = '/topic/games/PvP';
+    let sessionUUID = document.getElementById('session-uuid');
+    let messageTxt = document.getElementById('message');
 
     stompClient.onConnect = (frame) => {
         console.log('Connected: ' + frame);
         stompClient.subscribe(urlForSubscribe, (gameState) => {
-
+            console.log('stompClient.subscribe:' + urlForSubscribe);
             const state = JSON.parse(gameState.body);
-            console.log('stompClient.state: ' + state);
-
             board = state.board;
             currentPlayer = state.currentPlayer;
-            render(); // обновляем отображение
-            checkWinner(state); // проверяем есть ли победитель
+            render();
+            checkWinner(state);
         });
 
-        console.log('Connected CHAT: ' + frame);
-        stompClient.subscribe('/topic/greetings', (greeting) => {
-            showGreeting(JSON.parse(greeting.body).content);
+        console.log('stompClient.subscribe chat: /topic/play/' + sessionUUID.value + '/chat');
+        stompClient.subscribe('/topic/play/' + sessionUUID.value + '/chat', (chatMessage) => {
+            showChatMessage(JSON.parse(chatMessage.body).content);
         });
     };
-
     stompClient.onWebSocketError = (error) => {
         console.error('Error with websocket', error);
     };
-
     stompClient.onStompError = (frame) => {
         console.error('Broker reported error: ' + frame.headers['message']);
         console.error('Additional details: ' + frame.body);
     };
 
-    button.addEventListener('click', function() {
+    $(function () {
+        $("#start").click(() => startGame());
+        $("#reset").click(() => resetGame());
+        $("#send_message").click(() => sendMessage());
+    });
+
+    function sendMessage() {
+        stompClient.publish({
+            destination: "/app/play/" + sessionUUID.value + "/chat",
+            body: JSON.stringify(
+                {
+                    'name': $("#name-chat").val(),
+                    'message': $("#message-chat").val()
+                }
+            )
+        });
+    }
+
+    function resetGame() {
+        stompClient.publish({
+            destination: '/app/play/' + sessionUUID.value + '/clear'
+        });
+        render();
+    }
+
+    function startGame() {
+
+        let uuidRandom = crypto.randomUUID();
+
         for (let radio of radios) {
             if (radio.checked) {
-                console.log();
                 if (radio.value === 'PvP') {
-                    urlForPublish = '/app/play/PvP';
-                    urlForSubscribe = '/topic/games/PvP';
-                }
-                else {
-                    urlForPublish = '/app/play/PvE';
-                    urlForSubscribe = '/topic/games/PvE';
+                    if (sessionUUID.value === '' || sessionUUID.value === undefined) {
+                        sessionUUID.value = uuidRandom;
+                        alert("Id для игры с другом: " + sessionUUID.value);
+                    }
+                    urlForPublish += '/app/play/' + sessionUUID.value + '/opponent/person';
+                    urlForSubscribe += '/topic/play/' + sessionUUID.value + '/opponent/person';
+                } else {
+                    if (sessionUUID.value === '' || sessionUUID.value === undefined) {
+                        sessionUUID.value = uuidRandom;
+                    }
+                    urlForPublish += '/app/play/' + sessionUUID.value + '/opponent/computer';
+                    urlForSubscribe += '/topic/play/' + sessionUUID.value +'/opponent/computer';
                 }
             }
         }
-        start();
-    });
-
-    buttonReset.addEventListener('click', function (){
-
-        stompClient.publish({
-            destination: '/app/play/clear'
-        });
-        render();
-    })
-
-
-    function start() {
-        console.log('Try to start: ');
-
         console.log('stompClient.activate: urlForPublish - ', urlForPublish, "; urlForSubscribe - ", urlForSubscribe);
         stompClient.activate();
-        message.innerText = "Да начнутся голодные игры!)))";
+        messageTxt.innerHTML = "Да начнутся голодные игры!)))";
     }
 
     const handleClick = (index) => {
@@ -80,26 +90,27 @@ document.addEventListener('DOMContentLoaded', (event) => {
             return;
         }
 
-        // Создаем объект хода и отправляем его на сервер
         const move = {
             index: index,
             player: currentPlayer,
         };
+
+        console.log("handleClick: " + urlForPublish + "; move: " + move)
 
         stompClient.publish({
             destination: urlForPublish,
             body: JSON.stringify(move),
         });
 
-        board[index] = currentPlayer; // Обновляем доску локально
+        board[index] = currentPlayer;
         render();
-        checkWinner({'winner': null}); // Проверка на победителя после хода
+        checkWinner({'winner': null});
     };
 
     const render = () => {
         const gameboard = document.getElementById('gameboard');
         gameboard.innerHTML = '';
-        console.log("render - currentPlayer: " , currentPlayer, " board: ", board)
+        console.log("render - currentPlayer: ", currentPlayer, " board: ", board)
         board.forEach((cell, index) => {
             const cellElement = document.createElement('div');
             cellElement.classList.add('cell');
@@ -111,29 +122,15 @@ document.addEventListener('DOMContentLoaded', (event) => {
 
     const checkWinner = (state) => {
         if (state.winner) {
-            message.innerText = `${state.winner} выиграл!`;
+            messageTxt.innerHTML = `${state.winner} выиграл!`;
         } else if (board.every(cell => cell)) {
-            message.innerText = "Ничья!";
+            messageTxt.innerHTML = "Ничья!";
         }
     };
 
-    render(); // обновляем отображение
-
-    let buttonMessage = document.querySelector('#send_message');
-
-    buttonMessage.addEventListener('click', function() {
-        stompClient.publish({
-            destination: "/app/message",
-            body: JSON.stringify(
-                {
-                    'name': $("#name-chat").val(),
-                    'message': $("#message-chat").val()
-                }
-            )
-        });
-    })
-
-    function showGreeting(message) {
+    function showChatMessage(message) {
         $("#greetings").append("<tr><td>" + message + "</td></tr>");
     }
+
+    render(); // обновляем отображение
 });

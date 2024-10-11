@@ -1,14 +1,13 @@
-package com.oladushek.tictactoe.service;
+package com.oladushek.tictactoe.service.alg;
 
 
-import com.oladushek.tictactoe.service.model.Mark;
-import com.oladushek.tictactoe.web.dto.GameMove;
-import com.oladushek.tictactoe.web.dto.Board;
+import com.oladushek.tictactoe.web.dto.game.Mark;
+import com.oladushek.tictactoe.web.dto.game.GameMove;
+import com.oladushek.tictactoe.web.dto.game.Board;
 import org.springframework.stereotype.Component;
 
 @Component
 public class MinimaxAlg {
-
 
     public GameMove getBestMove(Board board){
         GameMove bestMove = new GameMove();

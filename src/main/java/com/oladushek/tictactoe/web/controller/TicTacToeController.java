@@ -1,49 +1,41 @@
 package com.oladushek.tictactoe.web.controller;
 
-import com.oladushek.tictactoe.service.GamePvEService;
-import com.oladushek.tictactoe.service.GamePvPService;
-import com.oladushek.tictactoe.service.model.Mark;
-import com.oladushek.tictactoe.web.dto.ChatMessage;
-import com.oladushek.tictactoe.web.dto.GameMove;
-import com.oladushek.tictactoe.web.dto.Board;
-import com.oladushek.tictactoe.web.dto.Greeting;
+import com.oladushek.tictactoe.service.GameService;
+import com.oladushek.tictactoe.web.dto.game.GameMove;
+import com.oladushek.tictactoe.web.dto.game.Board;
+import com.oladushek.tictactoe.web.dto.game.OpponentType;
+import lombok.RequiredArgsConstructor;
+import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
-import org.springframework.messaging.handler.annotation.SendTo;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.util.HtmlUtils;
+
+import java.util.UUID;
 
 @Controller
+@RequiredArgsConstructor
 public class TicTacToeController {
-    private Board board = new Board();
-    private final GamePvPService gamePvP = new GamePvPService(); // Создаем игру
-    private final GamePvEService gamePvE = new GamePvEService(); // Создаем игру
 
-    @MessageMapping("/play/clear")
-    @SendTo("/topic/games/clear")
-    public Board clearPvE() {
-        return board = new Board(); // Отправляем новое состояние игры всем подписчикам
+    private final SimpMessagingTemplate template;
+
+    private final GameService gameService;
+
+    @MessageMapping("/play/{sessionId}/clear")
+    public void clear(@DestinationVariable String sessionId) {
+        Board clearState = gameService.clear(UUID.fromString(sessionId));
+        template.convertAndSend("/topic/play/" + sessionId, clearState);
     }
 
-    @MessageMapping("/play/PvP")
-    @SendTo("/topic/games/PvP")
-    public Board playPvP(GameMove move) {
-        Board newState = gamePvP.play(move, board);
-        return newState; // Отправляем новое состояние игры всем подписчикам
-    }
+    @MessageMapping("/play/{sessionId}/opponent/{opponentType}")
+    public void play(@DestinationVariable String sessionId,
+                        @DestinationVariable String opponentType,
+                        GameMove move) {
 
-    @MessageMapping("/play/PvE")
-    @SendTo("/topic/games/PvE")
-    public Board playPvE(GameMove move) {
-        board.setCurrentPlayer(Mark.valueOf(move.getPlayer()));
-        Board newState = gamePvE.play(move, board);
-        return newState; // Отправляем новое состояние игры всем подписчикам
-    }
+        OpponentType type = opponentType.equals("person") ? OpponentType.PERSON : OpponentType.COMPUTER;
 
-
-    @MessageMapping("/message")
-    @SendTo("/topic/greetings")
-    public Greeting greeting(ChatMessage message) throws Exception {
-        return new Greeting( HtmlUtils.htmlEscape(message.getName()) + ": " + HtmlUtils.htmlEscape(message.getMessage()) );
+        Board newState = gameService.play(UUID.fromString(sessionId), type, move);
+        String destination = "/topic/play/" + sessionId + "/opponent/" + opponentType;
+        template.convertAndSend(destination, newState);
     }
 
 

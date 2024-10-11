@@ -1,4 +1,4 @@
-package com.oladushek.tictactoe.web.dto;
+package com.oladushek.tictactoe.web.dto.game;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
